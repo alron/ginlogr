@@ -4,6 +4,7 @@ package ginlogr
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -86,6 +87,11 @@ func RecoveryWithLogr(logger logr.Logger, timeFormat string, utc, stack bool) gi
 
 				httpRequest, _ := httputil.DumpRequest(c.Request, false)
 
+				e, ok := err.(error)
+				if !ok {
+					e = fmt.Errorf("%v", err)
+				}
+
 				switch {
 				case brokenPipe:
 					logger.Error(err.(*os.SyscallError), c.Request.URL.Path,
@@ -93,20 +99,18 @@ func RecoveryWithLogr(logger logr.Logger, timeFormat string, utc, stack bool) gi
 						"request", string(httpRequest),
 					)
 					// If the connection is dead, we can't write a status to it.
-					c.Error(err.(error)) // nolint: errcheck
+					c.Error(e) // nolint: errcheck
 					c.Abort()
 					return
 				case stack:
-					logger.Error(errors.New(err.(string)), "[Recovery from panic]",
+					logger.Error(e, "[Recovery from panic]",
 						"time", time.Format(timeFormat),
-						"error", err.(string),
 						"request", string(httpRequest),
 						"stack", string(debug.Stack()),
 					)
 				default:
-					logger.Error(errors.New(err.(string)), "[Recovery from panic]",
+					logger.Error(e, "[Recovery from panic]",
 						"time", time.Format(timeFormat),
-						"error", err.(string),
 						"request", string(httpRequest),
 					)
 				}
