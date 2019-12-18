@@ -1,6 +1,8 @@
 # ginlogr
 
-Alternative logging through [logr](https://github.com/go-logr/logr).
+Alternative [gin-gonic](https://github.com/gin-gonic/gin) middleware logging through [logr](https://github.com/go-logr/logr).
+
+The Majority of the code used here was lifted from [ginzap](https://github.com/gin-contrib/zap).
 
 ## Usage
 
